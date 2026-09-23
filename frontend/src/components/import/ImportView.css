@@ -1,0 +1,63 @@
+.import-view {
+  max-width: 600px;
+  margin: 0 auto;
+  padding-top: var(--space-2xl);
+}
+
+.import-header {
+  margin-bottom: var(--space-xl);
+  text-align: center;
+}
+
+.import-header h2 {
+  margin-bottom: var(--space-sm);
+}
+
+.import-header p {
+  color: var(--text-muted);
+}
+
+.import-card {
+  padding: var(--space-xl);
+}
+
+.path-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.path-icon {
+  position: absolute;
+  left: 14px;
+  color: var(--text-faint);
+}
+
+.path-input {
+  padding-left: 42px;
+}
+
+.input-hint {
+  margin-top: var(--space-xs);
+  font-size: var(--text-xs);
+  color: var(--text-faint);
+}
+
+.error-message {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  margin-bottom: var(--space-md);
+  background: var(--status-poor-bg);
+  color: var(--status-poor-text);
+  border: 1px solid var(--status-poor-border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+}
+
+.import-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-xl);
+}
