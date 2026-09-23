@@ -1,0 +1,125 @@
+.processing-view {
+  max-width: 600px;
+  margin: 0 auto;
+  padding-top: var(--space-2xl);
+}
+
+.processing-header {
+  text-align: center;
+  margin-bottom: var(--space-xl);
+}
+
+.processing-header h2 {
+  margin: var(--space-sm) 0;
+}
+
+.processing-header p {
+  color: var(--text-muted);
+}
+
+.spinner {
+  color: var(--interactive-primary);
+  animation: spin 2s linear infinite;
+}
+
+.success-icon {
+  color: var(--status-good-text);
+}
+
+.error-state {
+  text-align: center;
+}
+
+.error-icon {
+  color: var(--status-poor-text);
+  margin-bottom: var(--space-md);
+}
+
+.error-state p {
+  color: var(--text-muted);
+  margin-bottom: var(--space-xl);
+}
+
+.loading-state {
+  text-align: center;
+}
+
+.loading-state h2 {
+  margin-top: var(--space-md);
+  color: var(--text-muted);
+}
+
+.progress-card {
+  padding: var(--space-xl);
+}
+
+.progress-stats {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat.divider {
+  font-size: var(--text-2xl);
+  font-weight: 300;
+  color: var(--border-strong);
+}
+
+.stat-value {
+  font-size: var(--text-3xl);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin-top: var(--space-xs);
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 8px;
+  background: var(--surface-inset);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: var(--space-sm);
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: var(--interactive-primary);
+  transition: width var(--duration-normal) var(--ease-out);
+}
+
+.progress-bar-fill.completed {
+  background: var(--status-good-text);
+}
+
+.progress-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--text-sm);
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+.error-text {
+  color: var(--status-poor-text);
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
