@@ -1,6 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from typing import List
+import os
+import shutil
+from datetime import datetime
 
 from app.database import get_db
 from app.schemas.project import ProjectCreate, ProjectResponse, ProjectProcessingStatus
@@ -8,6 +11,7 @@ from app.schemas.base import APIResponse
 from app.models.project import Project
 from app.services.ingestion import create_project
 from app.services.pipeline import run_analysis_pipeline
+from app.config import DATA_DIR
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
@@ -35,6 +39,44 @@ def create_new_project(
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to create project: {str(e)}")
+
+@router.post("/upload", response_model=APIResponse[ProjectResponse])
+async def upload_new_project(
+    background_tasks: BackgroundTasks,
+    name: str = Form(...),
+    files: List[UploadFile] = File(...),
+    db: Session = Depends(get_db)
+):
+    """
+    Create a new project by uploading files directly.
+    Files will be stored in an internal directory before processing.
+    """
+    try:
+        # Create a unique directory for this upload
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        upload_dir = DATA_DIR / "uploads" / f"{name}_{timestamp}"
+        upload_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Save all uploaded files to the directory
+        for file in files:
+            file_path = upload_dir / file.filename
+            with open(file_path, "wb") as buffer:
+                shutil.copyfileobj(file.file, buffer)
+                
+        # Now create the project using this internal directory
+        project = create_project(db, name=name, source_path=str(upload_dir))
+        
+        # Trigger the background analysis pipeline
+        background_tasks.add_task(run_analysis_pipeline, project.id)
+        
+        return {
+            "status": "success",
+            "data": project
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to process upload: {str(e)}")
 
 @router.get("", response_model=APIResponse[List[ProjectResponse]])
 def list_projects(db: Session = Depends(get_db)):

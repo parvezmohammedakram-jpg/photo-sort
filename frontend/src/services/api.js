@@ -13,6 +13,21 @@ export const projectService = {
     return response.data.data;
   },
   
+  uploadProject: async (name, files) => {
+    const formData = new FormData();
+    formData.append('name', name);
+    Array.from(files).forEach(file => {
+      formData.append('files', file);
+    });
+    
+    const response = await api.post('/projects/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data.data;
+  },
+  
   getProjects: async () => {
     const response = await api.get('/projects');
     return response.data.data;
