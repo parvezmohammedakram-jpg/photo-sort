@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import init_db
 from app.schemas.base import APIResponse
-from app.api.routes import projects, photos, duplicates
+from app.api.routes import projects, photos, duplicates, export
 from fastapi.staticfiles import StaticFiles
 from app.config import DATA_DIR
 
@@ -31,6 +31,7 @@ app.mount("/api/files", StaticFiles(directory=str(DATA_DIR)), name="files")
 app.include_router(projects.router, prefix="/api")
 app.include_router(photos.router, prefix="/api")
 app.include_router(duplicates.router, prefix="/api")
+app.include_router(export.router, prefix="/api")
 
 @app.get("/api/health", response_model=APIResponse[dict])
 def health_check():

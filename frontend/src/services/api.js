@@ -55,4 +55,20 @@ export const duplicateService = {
   }
 };
 
+export const exportService = {
+  startExport: async (projectId, destinationPath, categories) => {
+    const response = await api.post('/export', {
+      project_id: projectId,
+      destination_path: destinationPath,
+      categories: categories
+    });
+    return response.data.data;
+  },
+  
+  getExportStatus: async (taskId) => {
+    const response = await api.get(`/export/${taskId}`);
+    return response.data.data;
+  }
+};
+
 export default api;

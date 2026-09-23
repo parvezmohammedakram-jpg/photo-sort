@@ -6,8 +6,7 @@ import Dashboard from './components/dashboard/Dashboard';
 import ResultsView from './components/photos/ResultsView';
 import PhotoDetailView from './components/photos/PhotoDetailView';
 import DuplicatesView from './components/duplicates/DuplicatesView';
-
-const ExportView = () => <div><h2>Export</h2><p>Export options here.</p></div>;
+import ExportView from './components/export/ExportView';
 
 function App() {
   return (
