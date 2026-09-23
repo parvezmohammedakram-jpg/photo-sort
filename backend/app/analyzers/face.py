@@ -5,9 +5,10 @@ import os
 from app.utils.logger import logger
 
 # Initialize OpenCV Haar Cascades
-# Use cv2.data.haarcascades to reliably find the XML files
-face_cascade_path = os.path.join(cv2.data.haarcascades, 'haarcascade_frontalface_default.xml')
-eye_cascade_path = os.path.join(cv2.data.haarcascades, 'haarcascade_eye.xml')
+# Use local cascade files instead of cv2.data which may be missing in some wheels
+cascades_dir = os.path.join(os.path.dirname(__file__), 'cascades')
+face_cascade_path = os.path.join(cascades_dir, 'haarcascade_frontalface_default.xml')
+eye_cascade_path = os.path.join(cascades_dir, 'haarcascade_eye.xml')
 
 face_cascade = cv2.CascadeClassifier(face_cascade_path)
 eye_cascade = cv2.CascadeClassifier(eye_cascade_path)

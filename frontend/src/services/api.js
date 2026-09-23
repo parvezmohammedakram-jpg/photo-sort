@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api',
+  baseURL: 'http://127.0.0.1:8000/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -34,9 +34,14 @@ export const projectService = {
   },
   
   getProjectStatus: async (projectId) => {
-    const response = await api.get(`/projects/${projectId}/status`);
+    const response = await api.get(`/projects/${projectId}/status?_t=${Date.now()}`);
     return response.data.data;
   },
+  
+  deleteProject: async (projectId) => {
+    const response = await api.delete(`/projects/${projectId}`);
+    return response.data;
+  }
 };
 
 export const photoService = {

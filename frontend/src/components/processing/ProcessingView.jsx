@@ -6,29 +6,45 @@ import './ProcessingView.css';
 
 const ProcessingView = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const projectId = searchParams.get('projectId');
+  const [projectIdStr] = useSearchParams();
+  const [projectId, setProjectId] = useState(projectIdStr.get('projectId'));
   
   const [status, setStatus] = useState(null);
   const [error, setError] = useState(null);
+  const [elapsedTime, setElapsedTime] = useState(0);
+
+  // Auto-fetch latest project if accessed from sidebar without a projectId
+  useEffect(() => {
+    const initProject = async () => {
+      if (!projectId) {
+        try {
+          const projects = await projectService.getProjects();
+          if (projects && projects.length > 0) {
+            const storedId = localStorage.getItem('activeProjectId');
+            if (storedId && projects.find(p => p.id === parseInt(storedId))) {
+              setProjectId(parseInt(storedId));
+            } else {
+              setProjectId(projects[0].id);
+            }
+          } else {
+            navigate('/import');
+          }
+        } catch (error) {
+          console.error('Error fetching projects:', error);
+          setError('Failed to find an active project.');
+        }
+      }
+    };
+    initProject();
+  }, [projectId, navigate]);
 
   useEffect(() => {
-    if (!projectId) {
-      navigate('/import');
-      return;
-    }
+    if (!projectId) return;
 
     const checkStatus = async () => {
       try {
         const data = await projectService.getProjectStatus(projectId);
         setStatus(data);
-        
-        if (data.project_status === 'completed') {
-          // Add a small delay for UX before redirecting
-          setTimeout(() => {
-            navigate(`/results?projectId=${projectId}`);
-          }, 1500);
-        }
       } catch (err) {
         console.error(err);
         setError('Failed to fetch processing status. The backend might be down.');
@@ -47,6 +63,37 @@ const ProcessingView = () => {
 
     return () => clearInterval(interval);
   }, [projectId, navigate, status?.project_status]);
+
+  useEffect(() => {
+    if (!status?.created_at) return;
+    
+    const calculateElapsed = () => {
+      // Ensure UTC parsing by appending Z if it's missing (FastAPI often omits it)
+      const startStr = status.created_at.endsWith('Z') ? status.created_at : `${status.created_at}Z`;
+      const start = new Date(startStr).getTime();
+      
+      let end = Date.now();
+      if (status.completed_at) {
+        const endStr = status.completed_at.endsWith('Z') ? status.completed_at : `${status.completed_at}Z`;
+        end = new Date(endStr).getTime();
+      }
+      
+      setElapsedTime(Math.max(0, Math.floor((end - start) / 1000)));
+    };
+    
+    calculateElapsed();
+    
+    if (status.project_status !== 'completed' && status.project_status !== 'failed') {
+      const timer = setInterval(calculateElapsed, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [status]);
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   if (error) {
     return (
@@ -110,12 +157,29 @@ const ProcessingView = () => {
         </div>
         
         <div className="progress-footer">
-          <span>{progressPercent.toFixed(1)}% Complete</span>
+          <div className="progress-footer-left">
+            <span>{progressPercent.toFixed(1)}% Complete</span>
+            <span className="elapsed-time" style={{ marginLeft: '1rem', color: 'var(--text-muted)' }}>
+              Time: {formatTime(elapsedTime)}
+            </span>
+          </div>
           {status.failed > 0 && (
             <span className="error-text">{status.failed} failed</span>
           )}
         </div>
       </div>
+      
+      {isCompleted && (
+        <div className="processing-actions" style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center' }}>
+          <button 
+            className="btn btn-primary" 
+            onClick={() => navigate(`/results?projectId=${projectId}`)}
+            style={{ fontSize: '1.1rem', padding: '0.75rem 2rem' }}
+          >
+            View Results
+          </button>
+        </div>
+      )}
     </div>
   );
 };

@@ -4,7 +4,7 @@ from sqlalchemy import func
 from typing import List, Optional
 
 from app.database import get_db
-from app.schemas.base import APIResponse
+from app.schemas.base import APIResponse, PaginatedResponse
 from app.schemas.photo import PhotoListResponse, PhotoDetailResponse, StatisticsResponse, PhotoCategoryUpdate, PhotoCategoryUpdateResponse
 from app.models.photo import Photo
 from app.models.project import Project
@@ -13,7 +13,7 @@ from app.models.review import ManualReview
 
 router = APIRouter(prefix="/photos", tags=["photos"])
 
-@router.get("", response_model=APIResponse[List[PhotoListResponse]])
+@router.get("", response_model=PaginatedResponse[PhotoListResponse])
 def list_photos(
     project_id: int,
     category: Optional[str] = None,
@@ -29,7 +29,7 @@ def list_photos(
         
     total = query.count()
     
-    photos = query.order_by(Photo.created_at.desc()).offset((page - 1) * per_page).limit(per_page).all()
+    photos = query.order_by(Photo.created_at.desc(), Photo.id.desc()).offset((page - 1) * per_page).limit(per_page).all()
     
     # We need to map ORM objects to the response schema, extracting nested analysis data
     response_data = []
@@ -175,9 +175,8 @@ def update_photo_category(photo_id: int, update: PhotoCategoryUpdate, db: Sessio
         # Log review
         review = ManualReview(
             photo_id=photo_id,
-            previous_category=old_category,
-            new_category=update.category,
-            reason="Manual override via UI"
+            original_category=old_category,
+            new_category=update.category
         )
         db.add(review)
         db.commit()
@@ -186,7 +185,8 @@ def update_photo_category(photo_id: int, update: PhotoCategoryUpdate, db: Sessio
         "status": "success",
         "data": {
             "id": photo.id,
-            "category": analysis.category,
+            "previous_category": old_category,
+            "new_category": analysis.category,
             "is_manually_modified": analysis.is_manually_modified
         }
     }

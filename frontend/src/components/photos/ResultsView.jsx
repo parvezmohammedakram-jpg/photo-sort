@@ -4,17 +4,28 @@ import { Funnel, WarningCircle } from '@phosphor-icons/react';
 import { projectService, photoService } from '../../services/api';
 import './ResultsView.css';
 
-const ResultsView = () => {
+const ResultsView = ({ isReviewMode = false }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const projectIdStr = searchParams.get('projectId');
-  const initialCategory = searchParams.get('category') || 'all';
+  
+  // If in review mode, force category to 'review', else read from URL or default to 'all'
+  const initialCategory = isReviewMode ? 'review' : (searchParams.get('category') || 'all');
 
   const [projectId, setProjectId] = useState(projectIdStr ? parseInt(projectIdStr) : null);
   const [photos, setPhotos] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [categoryFilter, setCategoryFilter] = useState(initialCategory);
+
+  // Sync categoryFilter when mode changes
+  useEffect(() => {
+    if (isReviewMode) {
+      setCategoryFilter('review');
+    } else {
+      setCategoryFilter(searchParams.get('category') || 'all');
+    }
+  }, [isReviewMode, searchParams]);
   
   // Try to find the latest project if none is specified
   useEffect(() => {
@@ -23,7 +34,12 @@ const ResultsView = () => {
         try {
           const projects = await projectService.getProjects();
           if (projects && projects.length > 0) {
-            setProjectId(projects[0].id);
+            const storedId = localStorage.getItem('activeProjectId');
+            if (storedId && projects.find(p => p.id === parseInt(storedId))) {
+              setProjectId(parseInt(storedId));
+            } else {
+              setProjectId(projects[0].id);
+            }
           } else {
             navigate('/import');
           }
@@ -90,20 +106,22 @@ const ResultsView = () => {
   return (
     <div className="results-view">
       <div className="results-header">
-        <h2>Photo Results</h2>
-        <div className="filter-controls">
-          <Funnel size={20} />
-          <select 
-            className="input category-select" 
-            value={categoryFilter}
-            onChange={handleCategoryChange}
-          >
-            <option value="all">All Categories</option>
-            <option value="good">Good</option>
-            <option value="review">Review</option>
-            <option value="poor">Poor</option>
-          </select>
-        </div>
+        <h2>{isReviewMode ? "Manual Review" : "Photo Results"}</h2>
+        {!isReviewMode && (
+          <div className="filter-controls">
+            <Funnel size={20} />
+            <select 
+              className="input category-select" 
+              value={categoryFilter}
+              onChange={handleCategoryChange}
+            >
+              <option value="all">All Categories</option>
+              <option value="good">Good</option>
+              <option value="review">Review</option>
+              <option value="poor">Poor</option>
+            </select>
+          </div>
+        )}
       </div>
 
       {isLoading ? (

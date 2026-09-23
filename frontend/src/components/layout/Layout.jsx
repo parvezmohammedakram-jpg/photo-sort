@@ -5,15 +5,19 @@ import {
   Image, 
   Copy, 
   Export, 
-  Spinner 
+  Spinner,
+  MagnifyingGlass,
+  FolderOpen
 } from '@phosphor-icons/react';
 import './Layout.css';
 
 const navItems = [
+  { path: '/projects', label: 'Projects', icon: <FolderOpen size={20} /> },
   { path: '/dashboard', label: 'Dashboard', icon: <SquaresFour size={20} /> },
   { path: '/import', label: 'Import', icon: <UploadSimple size={20} /> },
   { path: '/processing', label: 'Processing', icon: <Spinner size={20} /> },
   { path: '/results', label: 'Results', icon: <Image size={20} /> },
+  { path: '/review', label: 'Review', icon: <MagnifyingGlass size={20} /> },
   { path: '/duplicates', label: 'Duplicates', icon: <Copy size={20} /> },
   { path: '/export', label: 'Export', icon: <Export size={20} /> },
 ];

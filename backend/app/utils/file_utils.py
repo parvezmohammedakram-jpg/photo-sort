@@ -42,7 +42,8 @@ def validate_directory_path(path: str) -> tuple[bool, Optional[str]]:
     if not path or not path.strip():
         return False, "Path is empty"
 
-    resolved = Path(path).resolve()
+    clean_path = path.strip().strip('"').strip("'")
+    resolved = Path(clean_path).resolve()
 
     if not resolved.exists():
         return False, f"Path does not exist: {resolved}"
@@ -67,7 +68,8 @@ def validate_output_path(path: str) -> tuple[bool, Optional[str]]:
     if not path or not path.strip():
         return False, "Output path is empty"
 
-    resolved = Path(path).resolve()
+    clean_path = path.strip().strip('"').strip("'")
+    resolved = Path(clean_path).resolve()
 
     # Check that parent directory exists and is writable
     parent = resolved.parent

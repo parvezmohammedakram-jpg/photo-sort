@@ -38,14 +38,21 @@ const ExportView = () => {
       try {
         const projects = await projectService.getProjects();
         if (projects && projects.length > 0) {
-          const currentProjId = projects[0].id;
+          const storedId = localStorage.getItem('activeProjectId');
+          let activeProject = projects[0];
+          if (storedId) {
+            const found = projects.find(p => p.id === parseInt(storedId));
+            if (found) activeProject = found;
+          }
+          
+          const currentProjId = activeProject.id;
           setProjectId(currentProjId);
           
           const projectStats = await photoService.getStats(currentProjId);
           setStats(projectStats);
           
           // Suggest a default export path
-          const sourcePath = projects[0].source_path;
+          const sourcePath = activeProject.source_path;
           const defaultDest = sourcePath.endsWith('/') || sourcePath.endsWith('\\')
             ? `${sourcePath}PhotoSort_Export`
             : `${sourcePath}_PhotoSort_Export`;
@@ -169,6 +176,14 @@ const ExportView = () => {
           <span>{exportStatus.copied_files} copied successfully</span>
           <span>{exportStatus.total_files} total files</span>
         </div>
+        
+        {isDone && (
+          <div className="export-destination-info">
+            <p style={{marginTop: '1rem', color: 'var(--text-muted)', fontSize: '0.9rem'}}>
+              <strong>Exported to:</strong> <br/> {destPath}
+            </p>
+          </div>
+        )}
         
         {exportStatus.failed_files > 0 && (
           <div className="export-error">

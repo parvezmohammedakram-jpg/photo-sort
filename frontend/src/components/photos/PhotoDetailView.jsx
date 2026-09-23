@@ -68,7 +68,7 @@ const PhotoDetailView = () => {
   return (
     <div className="photo-detail-view">
       <div className="detail-header">
-        <button className="btn btn-icon" onClick={() => navigate(-1)}>
+        <button className="btn btn-back" onClick={() => navigate(-1)}>
           <ArrowLeft size={20} />
           <span>Back</span>
         </button>

@@ -30,3 +30,5 @@ class ProjectProcessingStatus(BaseModel):
     progress_percent: float
     current_file: Optional[str] = None
     current_step: Optional[str] = None
+    created_at: datetime
+    completed_at: Optional[datetime] = None

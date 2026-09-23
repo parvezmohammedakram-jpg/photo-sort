@@ -17,6 +17,8 @@ def create_project(db: Session, name: str, source_path: str) -> Project:
     """
     Create a new project and discover images in the source path.
     """
+    source_path = source_path.strip().strip('"').strip("'")
+    
     # 1. Validate directory
     is_valid, err_msg = validate_directory_path(source_path)
     if not is_valid:

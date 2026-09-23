@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   Images, 
   CheckCircle, 
@@ -14,6 +14,9 @@ import './Dashboard.css';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const projectIdParam = searchParams.get('projectId');
+  
   const [project, setProject] = useState(null);
   const [stats, setStats] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -23,15 +26,32 @@ const Dashboard = () => {
       try {
         const projects = await projectService.getProjects();
         if (projects && projects.length > 0) {
-          const latestProject = projects[0];
-          setProject(latestProject);
+          let activeProject = projects[0];
           
-          if (latestProject.status === 'completed') {
-            const projectStats = await photoService.getStats(latestProject.id);
+          const storedProjectId = localStorage.getItem('activeProjectId');
+          if (projectIdParam) {
+            const found = projects.find(p => p.id === parseInt(projectIdParam));
+            if (found) {
+              activeProject = found;
+            }
+          } else if (storedProjectId) {
+            const found = projects.find(p => p.id === parseInt(storedProjectId));
+            if (found) {
+              activeProject = found;
+            }
+          }
+          
+          // Save the currently active project
+          localStorage.setItem('activeProjectId', activeProject.id);
+          
+          setProject(activeProject);
+          
+          if (activeProject.status === 'completed') {
+            const projectStats = await photoService.getStats(activeProject.id);
             setStats(projectStats);
           } else {
             // Still processing or pending
-            navigate(`/processing?projectId=${latestProject.id}`);
+            navigate(`/processing?projectId=${activeProject.id}`);
           }
         }
       } catch (error) {

@@ -16,7 +16,12 @@ const DuplicatesView = () => {
       try {
         const projects = await projectService.getProjects();
         if (projects && projects.length > 0) {
-          setProjectId(projects[0].id);
+          const storedId = localStorage.getItem('activeProjectId');
+          if (storedId && projects.find(p => p.id === parseInt(storedId))) {
+            setProjectId(parseInt(storedId));
+          } else {
+            setProjectId(projects[0].id);
+          }
         } else {
           navigate('/import');
         }

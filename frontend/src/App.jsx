@@ -7,6 +7,7 @@ import ResultsView from './components/photos/ResultsView';
 import PhotoDetailView from './components/photos/PhotoDetailView';
 import DuplicatesView from './components/duplicates/DuplicatesView';
 import ExportView from './components/export/ExportView';
+import ProjectsView from './components/projects/ProjectsView';
 
 function App() {
   return (
@@ -14,10 +15,12 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route path="projects" element={<ProjectsView />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="import" element={<ImportView />} />
           <Route path="processing" element={<ProcessingView />} />
           <Route path="results" element={<ResultsView />} />
+          <Route path="review" element={<ResultsView isReviewMode={true} />} />
           <Route path="photos/:id" element={<PhotoDetailView />} />
           <Route path="duplicates" element={<DuplicatesView />} />
           <Route path="export" element={<ExportView />} />

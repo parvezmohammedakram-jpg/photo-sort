@@ -121,6 +121,32 @@ def get_project_status(project_id: int, db: Session = Depends(get_db)):
             "total": total,
             "processed": project.processed_files,
             "failed": project.failed_files,
-            "progress_percent": round(percent, 1)
+            "progress_percent": round(percent, 1),
+            "created_at": project.created_at,
+            "completed_at": project.completed_at
         }
     }
+
+@router.delete("/{project_id}")
+def delete_project(project_id: int, db: Session = Depends(get_db)):
+    """Delete a specific project and its data."""
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+        
+    try:
+        # If the project was uploaded, it might be in the uploads directory
+        # Let's clean up the folder to save space
+        if "uploads" in project.source_path and os.path.exists(project.source_path):
+            shutil.rmtree(project.source_path)
+    except Exception as e:
+        print(f"Failed to delete directory {project.source_path}: {e}")
+            
+    db.delete(project)
+    db.commit()
+    
+    return {
+        "status": "success",
+        "data": None
+    }
+
