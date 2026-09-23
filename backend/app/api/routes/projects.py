@@ -7,6 +7,7 @@ from app.schemas.project import ProjectCreate, ProjectResponse, ProjectProcessin
 from app.schemas.base import APIResponse
 from app.models.project import Project
 from app.services.ingestion import create_project
+from app.services.pipeline import run_analysis_pipeline
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
@@ -23,8 +24,8 @@ def create_new_project(
     try:
         project = create_project(db, name=project_in.name, source_path=project_in.source_path)
         
-        # Here we would normally trigger the background analysis pipeline
-        # background_tasks.add_task(run_analysis_pipeline, project.id)
+        # Trigger the background analysis pipeline
+        background_tasks.add_task(run_analysis_pipeline, project.id)
         
         return {
             "status": "success",
