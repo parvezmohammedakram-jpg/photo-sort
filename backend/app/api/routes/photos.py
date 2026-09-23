@@ -4,6 +4,7 @@ from sqlalchemy import func
 from typing import List, Optional
 
 from app.database import get_db
+from app.schemas.base import APIResponse
 from app.schemas.photo import PhotoListResponse, PhotoDetailResponse, StatisticsResponse, PhotoCategoryUpdate, PhotoCategoryUpdateResponse
 from app.models.photo import Photo
 from app.models.project import Project

@@ -1,54 +1,21 @@
 import cv2
 import numpy as np
-import mediapipe as mp
+import os
 
-from app.config import FACE_DETECTION_CONFIDENCE, EYE_CLOSED_THRESHOLD
 from app.utils.logger import logger
 
-# Initialize MediaPipe Face Mesh
-mp_face_mesh = mp.solutions.face_mesh
-face_mesh = mp_face_mesh.FaceMesh(
-    static_image_mode=True,
-    max_num_faces=10,
-    refine_landmarks=True,
-    min_detection_confidence=FACE_DETECTION_CONFIDENCE
-)
+# Initialize OpenCV Haar Cascades
+# Use cv2.data.haarcascades to reliably find the XML files
+face_cascade_path = os.path.join(cv2.data.haarcascades, 'haarcascade_frontalface_default.xml')
+eye_cascade_path = os.path.join(cv2.data.haarcascades, 'haarcascade_eye.xml')
 
-# MediaPipe eye landmark indices
-LEFT_EYE = [362, 385, 387, 263, 373, 380]
-RIGHT_EYE = [33, 160, 158, 133, 153, 144]
-
-def calculate_ear(eye_landmarks, all_landmarks, img_w, img_h) -> float:
-    """
-    Calculate Eye Aspect Ratio (EAR) given specific eye landmarks.
-    Formula: EAR = (||p2-p6|| + ||p3-p5||) / (2 * ||p1-p4||)
-    """
-    def get_pt(idx):
-        landmark = all_landmarks[idx]
-        return np.array([landmark.x * img_w, landmark.y * img_h])
-        
-    p1 = get_pt(eye_landmarks[0]) # Outer corner
-    p2 = get_pt(eye_landmarks[1]) # Top outer
-    p3 = get_pt(eye_landmarks[2]) # Top inner
-    p4 = get_pt(eye_landmarks[3]) # Inner corner
-    p5 = get_pt(eye_landmarks[4]) # Bottom inner
-    p6 = get_pt(eye_landmarks[5]) # Bottom outer
-    
-    # Compute Euclidean distances
-    v1 = np.linalg.norm(p2 - p6)
-    v2 = np.linalg.norm(p3 - p5)
-    h = np.linalg.norm(p1 - p4)
-    
-    # Avoid division by zero (shouldn't happen with valid faces but safe)
-    if h == 0:
-        return 0.0
-        
-    ear = (v1 + v2) / (2.0 * h)
-    return ear
+face_cascade = cv2.CascadeClassifier(face_cascade_path)
+eye_cascade = cv2.CascadeClassifier(eye_cascade_path)
 
 def analyze_faces(image: np.ndarray) -> dict:
     """
-    Detect faces and analyze eye state using MediaPipe Face Mesh.
+    Detect faces and analyze eye state using OpenCV Haar Cascades.
+    This is a simpler, more robust fallback compared to MediaPipe which can have DLL issues.
     
     Args:
         image: BGR image array.
@@ -61,35 +28,45 @@ def analyze_faces(image: np.ndarray) -> dict:
         }
     """
     try:
-        # Convert BGR to RGB
-        rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        h, w = image.shape[:2]
+        # Convert BGR to Grayscale for Haar cascades
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         
-        # Process image
-        results = face_mesh.process(rgb_image)
+        # Detect faces
+        faces = face_cascade.detectMultiScale(
+            gray,
+            scaleFactor=1.1,
+            minNeighbors=5,
+            minSize=(30, 30)
+        )
         
-        if not results.multi_face_landmarks:
+        face_count = len(faces)
+        if face_count == 0:
             return {
                 "face_count": 0,
                 "closed_eye_detected": False,
                 "face_status": "no_face"
             }
             
-        face_count = len(results.multi_face_landmarks)
         closed_eye_detected = False
         
-        for face_landmarks in results.multi_face_landmarks:
-            # Calculate EAR for both eyes
-            left_ear = calculate_ear(LEFT_EYE, face_landmarks.landmark, w, h)
-            right_ear = calculate_ear(RIGHT_EYE, face_landmarks.landmark, w, h)
+        # For each face, try to detect eyes
+        for (x, y, w, h) in faces:
+            roi_gray = gray[y:y+h, x:x+w]
             
-            # Average EAR
-            avg_ear = (left_ear + right_ear) / 2.0
+            # Detect eyes within the face ROI
+            eyes = eye_cascade.detectMultiScale(
+                roi_gray,
+                scaleFactor=1.1,
+                minNeighbors=10,
+                minSize=(15, 15)
+            )
             
-            # Check if eyes are closed
-            if avg_ear < EYE_CLOSED_THRESHOLD:
+            # Simple heuristic: if face is detected but < 2 eyes are detected, 
+            # we might have a closed eye. (This is less accurate than EAR, but works as a fallback)
+            # A better heuristic for Haar: often closed eyes aren't detected at all as 'eyes' by the standard cascade.
+            if len(eyes) < 2:
                 closed_eye_detected = True
-                break # One closed-eye face is enough to flag the image
+                break
                 
         status = "closed_eyes_detected" if closed_eye_detected else "faces_detected"
         
