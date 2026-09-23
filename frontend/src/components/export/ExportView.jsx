@@ -5,7 +5,9 @@ import {
   CheckCircle, 
   WarningCircle, 
   FolderOpen,
-  Activity
+  Spinner,
+  MagnifyingGlass,
+  XCircle
 } from '@phosphor-icons/react';
 import { projectService, photoService, exportService } from '../../services/api';
 import './ExportView.css';
@@ -147,7 +149,7 @@ const ExportView = () => {
           ) : isFailed ? (
             <WarningCircle size={32} className="error-icon" />
           ) : (
-            <Activity size={32} className="spinner" />
+            <Spinner size={32} className="spinner" />
           )}
           <h3>
             {isDone ? 'Export Complete' : 

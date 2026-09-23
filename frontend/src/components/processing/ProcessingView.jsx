@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Activity, CheckCircle, WarningCircle } from '@phosphor-icons/react';
+import { Spinner, CheckCircle, WarningCircle } from '@phosphor-icons/react';
 import { projectService } from '../../services/api';
 import './ProcessingView.css';
 
@@ -64,7 +64,7 @@ const ProcessingView = () => {
   if (!status) {
     return (
       <div className="processing-view loading-state">
-        <Activity size={48} className="spinner" />
+        <Spinner size={48} className="spinner" />
         <h2>Connecting to Engine...</h2>
       </div>
     );
@@ -79,7 +79,7 @@ const ProcessingView = () => {
         {isCompleted ? (
           <CheckCircle size={48} className="success-icon" />
         ) : (
-          <Activity size={48} className="spinner" />
+          <Spinner size={48} className="spinner" />
         )}
         <h2>{isCompleted ? 'Analysis Complete' : 'Analyzing Photographs'}</h2>
         <p>
