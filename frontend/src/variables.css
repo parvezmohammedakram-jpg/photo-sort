@@ -1,0 +1,89 @@
+:root {
+  /* Surfaces */
+  --surface-page: #FAFAF9;
+  --surface-card: #FFFFFF;
+  --surface-raised: #F5F5F4;
+  --surface-inset: #F0EFED;
+  --surface-overlay: rgba(0, 0, 0, 0.4);
+
+  /* Borders */
+  --border-default: #E5E4E2;
+  --border-strong: #D4D3D1;
+  --border-focus: #111111;
+
+  /* Text */
+  --text-primary: #111111;
+  --text-body: #2F3437;
+  --text-muted: #787774;
+  --text-faint: #A3A09C;
+  --text-inverse: #FFFFFF;
+
+  /* Status -- Good */
+  --status-good-bg: #EDF3EC;
+  --status-good-text: #346538;
+  --status-good-border: #C4D9C3;
+
+  /* Status -- Review */
+  --status-review-bg: #FBF3DB;
+  --status-review-text: #956400;
+  --status-review-border: #E8D8A8;
+
+  /* Status -- Poor */
+  --status-poor-bg: #FDEBEC;
+  --status-poor-text: #9F2F2D;
+  --status-poor-border: #E8B4B3;
+
+  /* Status -- Duplicate */
+  --status-dup-bg: #E1F3FE;
+  --status-dup-text: #1F6C9F;
+  --status-dup-border: #B0D8F0;
+
+  /* Interactive */
+  --interactive-primary: #111111;
+  --interactive-primary-hover: #2F3437;
+  --interactive-primary-active: #000000;
+  --interactive-primary-text: #FFFFFF;
+  --interactive-secondary-border: #D4D3D1;
+
+  /* Typography */
+  --font-sans: 'Geist Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    Helvetica, Arial, sans-serif;
+  --font-mono: 'Geist Mono', 'JetBrains Mono', 'SF Mono', 'Consolas',
+    monospace;
+
+  /* Type Scale */
+  --text-xs: 0.6875rem;    /* 11px */
+  --text-sm: 0.75rem;      /* 12px */
+  --text-base: 0.875rem;   /* 14px */
+  --text-md: 1rem;         /* 16px */
+  --text-lg: 1.25rem;      /* 20px */
+  --text-xl: 1.5rem;       /* 24px */
+  --text-2xl: 2rem;        /* 32px */
+  --text-3xl: 2.5rem;      /* 40px */
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+
+  /* Shadows -- minimal */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+
+  /* Transitions */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+
+  /* Layout */
+  --sidebar-width: 240px;
+  --header-height: 56px;
+  --content-max-width: 1400px;
+}

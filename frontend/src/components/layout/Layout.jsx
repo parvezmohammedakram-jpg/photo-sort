@@ -1,0 +1,51 @@
+import { NavLink, Outlet } from 'react-router-dom';
+import { 
+  SquaresFour, 
+  UploadSimple, 
+  Image, 
+  Copy, 
+  Export, 
+  Activity 
+} from '@phosphor-icons/react';
+import './Layout.css';
+
+const navItems = [
+  { path: '/dashboard', label: 'Dashboard', icon: <SquaresFour size={20} /> },
+  { path: '/import', label: 'Import', icon: <UploadSimple size={20} /> },
+  { path: '/processing', label: 'Processing', icon: <Activity size={20} /> },
+  { path: '/results', label: 'Results', icon: <Image size={20} /> },
+  { path: '/duplicates', label: 'Duplicates', icon: <Copy size={20} /> },
+  { path: '/export', label: 'Export', icon: <Export size={20} /> },
+];
+
+const Layout = () => {
+  return (
+    <div className="app-layout">
+      <aside className="sidebar">
+        <div className="sidebar-header">
+          <h1 className="sidebar-title">PhotoSort</h1>
+        </div>
+        <nav className="sidebar-nav">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={({ isActive }) => 
+                `nav-item ${isActive ? 'active' : ''}`
+              }
+            >
+              {item.icon}
+              <span>{item.label}</span>
+            </NavLink>
+          ))}
+        </nav>
+      </aside>
+      
+      <main className="main-content">
+        <Outlet />
+      </main>
+    </div>
+  );
+};
+
+export default Layout;
