@@ -1,10 +1,14 @@
 # PhotoSort
 
-An Automated Photo Quality Detection and Organization System built as a Bachelor of Computer Applications (BCA) project.
+![PhotoSort Logo](frontend/public/icons.svg)
+
+An **Automated Photo Quality Detection and Organization System**, built as a Bachelor of Computer Applications (BCA) project.
 
 PhotoSort helps photographers and users automatically sort through large collections of photographs, scoring them on sharpness, exposure, and facial details, and categorizing them as Good, Review, or Poor. It also detects duplicate and near-duplicate photos to help reclaim storage space.
 
-## Features
+---
+
+## ✨ Features
 
 - **Automated Ingestion**: Safely ingest folders of images without modifying the originals.
 - **Image Analysis Pipeline**:
@@ -17,17 +21,28 @@ PhotoSort helps photographers and users automatically sort through large collect
 - **Manual Review**: Override automated decisions if necessary.
 - **Safe Export**: Copy categorized photos to a new destination folder without modifying the original source.
 
-## Technology Stack
+## 🏛️ Architecture & Documentation
+
+For recruiters, professors, and contributors, the complete software engineering lifecycle documentation used to build this project is available in the [`docs/`](docs/) directory:
+
+- [Product Requirements](docs/01-product-requirements.md)
+- [System Architecture](docs/02-system-architecture.md)
+- [Database Schema](docs/03-database-schema.md)
+- [API Contracts](docs/04-api-contracts.md)
+- [Analysis Pipeline Details](docs/05-analysis-pipeline.md)
+
+## 🛠️ Technology Stack
 
 - **Backend**: Python, FastAPI, SQLAlchemy, SQLite, OpenCV, ImageHash
 - **Frontend**: React, Vite, React Router, Phosphor Icons, Axios, Vanilla CSS (Design engineered)
 
-## Prerequisites
+---
 
+## 🚀 Quick Start Guide
+
+### Prerequisites
 - Python 3.10 or higher
 - Node.js 18 or higher
-
-## Installation and Setup
 
 ### 1. Clone the Repository
 ```bash
@@ -67,7 +82,9 @@ npm run dev
 ```
 The frontend UI will be available at `http://localhost:5173`.
 
-## Usage Guide
+---
+
+## 📖 Usage Guide
 
 1. **Import**: Navigate to the Import view and specify a local directory containing your photos.
 2. **Processing**: The system will automatically scan and begin analyzing the photos in the background. Wait for it to complete.
@@ -76,6 +93,6 @@ The frontend UI will be available at `http://localhost:5173`.
 5. **Duplicates**: Review groups of similar photos to help you cull redundant shots.
 6. **Export**: Export specific categories (e.g., only "Good" photos) to a new destination folder. The original files remain untouched.
 
-## Design Philosophy
+## 🎨 Design Philosophy
 
 The user interface follows a "Neo Kinpaku" design system inspired by dark lacquer surfaces and gold leaf accents. The application is built with a focus on simplicity, responsiveness, and safe data handling (read-only source ingestion).
