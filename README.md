@@ -1,73 +1,81 @@
 # PhotoSort
 
-Automated Photo Quality Detection and Organization System
+An Automated Photo Quality Detection and Organization System built as a Bachelor of Computer Applications (BCA) project.
 
-A BCA final-year project that processes collections of photographs, evaluates each image against multiple measurable quality parameters, assigns a numerical quality score, categorizes images into three tiers (Good / Review / Poor), and provides a review interface for manual adjustments and export.
+PhotoSort helps photographers and users automatically sort through large collections of photographs, scoring them on sharpness, exposure, and facial details, and categorizing them as Good, Review, or Poor. It also detects duplicate and near-duplicate photos to help reclaim storage space.
 
 ## Features
 
-- Blur detection using Laplacian variance
-- Resolution analysis
-- Exposure analysis using histogram-based brightness metrics
-- Facial detection and closed-eye identification using MediaPipe
-- Duplicate and near-duplicate detection using perceptual hashing
-- Composite quality scoring with configurable weights
-- Automatic categorization (Good / Review / Poor)
-- Manual category reassignment
-- Safe export (copy only, originals never modified)
+- **Automated Ingestion**: Safely ingest folders of images without modifying the originals.
+- **Image Analysis Pipeline**:
+  - **Blur Detection**: Calculates Laplacian variance to detect out-of-focus images.
+  - **Exposure Analysis**: Uses histogram distributions to detect under and overexposed shots.
+  - **Facial Analysis**: Detects faces and closed eyes using OpenCV Haar Cascades.
+  - **Duplicate Detection**: Finds exact and near-duplicates using perceptual hashing (pHash) and exact hashing (MD5).
+- **Quality Scoring**: A weighted scoring algorithm categorizes photos based on the analysis.
+- **Dashboard & Results**: View comprehensive statistics, filter by category, and review duplicate groups.
+- **Manual Review**: Override automated decisions if necessary.
+- **Safe Export**: Copy categorized photos to a new destination folder without modifying the original source.
 
-## Tech Stack
+## Technology Stack
 
-- **Backend:** Python, FastAPI, OpenCV, MediaPipe, SQLAlchemy, SQLite
-- **Frontend:** React, Vite, Vanilla CSS
-- **Analysis:** OpenCV, NumPy, Pillow, imagehash
+- **Backend**: Python, FastAPI, SQLAlchemy, SQLite, OpenCV, ImageHash
+- **Frontend**: React, Vite, React Router, Phosphor Icons, Axios, Vanilla CSS (Design engineered)
 
-## Project Structure
+## Prerequisites
 
-```
-photosort/
-  backend/          # FastAPI application, analyzers, services
-  frontend/         # React application
-  docs/             # Project documentation
-```
+- Python 3.10 or higher
+- Node.js 18 or higher
 
-## Setup
+## Installation and Setup
 
-See [docs/12-installation-guide.md](docs/12-installation-guide.md) for full instructions.
-
-### Quick Start
-
+### 1. Clone the Repository
 ```bash
-# Backend
+git clone https://github.com/parvezmohammedakram-jpg/photo-sort.git
+cd photo-sort
+```
+
+### 2. Backend Setup
+```bash
 cd backend
 python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
 
-# Frontend (new terminal)
+# Activate virtual environment
+# Windows:
+venv\Scripts\activate
+# macOS/Linux:
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Start the backend server
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+```
+The backend API will be available at `http://127.0.0.1:8000`. API documentation is automatically generated at `http://127.0.0.1:8000/docs`.
+
+### 3. Frontend Setup
+Open a new terminal window:
+```bash
 cd frontend
+
+# Install dependencies
 npm install
+
+# Start the frontend development server
 npm run dev
 ```
+The frontend UI will be available at `http://localhost:5173`.
 
-## Documentation
+## Usage Guide
 
-| Document | Description |
-|----------|-------------|
-| [01-product-requirements.md](docs/01-product-requirements.md) | Functional and non-functional requirements |
-| [02-system-architecture.md](docs/02-system-architecture.md) | Architecture, tech stack, data flow |
-| [03-database-schema.md](docs/03-database-schema.md) | Database tables and relationships |
-| [04-api-contracts.md](docs/04-api-contracts.md) | REST API endpoints and schemas |
-| [05-analysis-pipeline.md](docs/05-analysis-pipeline.md) | Image analysis algorithms |
-| [06-frontend-specification.md](docs/06-frontend-specification.md) | UI pages and design direction |
-| [07-development-phases.md](docs/07-development-phases.md) | Implementation phases and estimates |
-| [08-testing-strategy.md](docs/08-testing-strategy.md) | Test plan and methodology |
-| [09-ui-design-system.md](docs/09-ui-design-system.md) | CSS design tokens and components |
-| [10-scoring-engine.md](docs/10-scoring-engine.md) | Quality scoring formula and weights |
-| [11-known-limitations.md](docs/11-known-limitations.md) | Honest limitations and mitigations |
-| [12-installation-guide.md](docs/12-installation-guide.md) | Setup and troubleshooting |
+1. **Import**: Navigate to the Import view and specify a local directory containing your photos.
+2. **Processing**: The system will automatically scan and begin analyzing the photos in the background. Wait for it to complete.
+3. **Dashboard**: View aggregate statistics of your photo collection.
+4. **Results**: Filter through Good, Review, and Poor photos. Click any photo to see detailed analysis metrics and manually override the category if needed.
+5. **Duplicates**: Review groups of similar photos to help you cull redundant shots.
+6. **Export**: Export specific categories (e.g., only "Good" photos) to a new destination folder. The original files remain untouched.
 
-## License
+## Design Philosophy
 
-This project is developed as a BCA academic project.
+The user interface follows a "Neo Kinpaku" design system inspired by dark lacquer surfaces and gold leaf accents. The application is built with a focus on simplicity, responsiveness, and safe data handling (read-only source ingestion).
