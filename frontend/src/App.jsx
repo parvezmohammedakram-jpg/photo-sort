@@ -2,11 +2,11 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Layout from './components/layout/Layout';
 import ImportView from './components/import/ImportView';
 import ProcessingView from './components/processing/ProcessingView';
+import Dashboard from './components/dashboard/Dashboard';
+import ResultsView from './components/photos/ResultsView';
+import PhotoDetailView from './components/photos/PhotoDetailView';
+import DuplicatesView from './components/duplicates/DuplicatesView';
 
-// Placeholder components
-const Dashboard = () => <div><h2>Dashboard</h2><p>Overview statistics will appear here.</p></div>;
-const ResultsView = () => <div><h2>Results</h2><p>Photo grid results here.</p></div>;
-const DuplicatesView = () => <div><h2>Duplicates</h2><p>Duplicate groups here.</p></div>;
 const ExportView = () => <div><h2>Export</h2><p>Export options here.</p></div>;
 
 function App() {
@@ -19,6 +19,7 @@ function App() {
           <Route path="import" element={<ImportView />} />
           <Route path="processing" element={<ProcessingView />} />
           <Route path="results" element={<ResultsView />} />
+          <Route path="photos/:id" element={<PhotoDetailView />} />
           <Route path="duplicates" element={<DuplicatesView />} />
           <Route path="export" element={<ExportView />} />
         </Route>

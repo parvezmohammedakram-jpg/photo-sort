@@ -2,7 +2,9 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import init_db
 from app.schemas.base import APIResponse
-from app.api.routes import projects
+from app.api.routes import projects, photos, duplicates
+from fastapi.staticfiles import StaticFiles
+from app.config import DATA_DIR
 
 # Initialize database tables
 init_db()
@@ -22,8 +24,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount static files for thumbnails and previews
+app.mount("/api/files", StaticFiles(directory=str(DATA_DIR)), name="files")
+
 # Include routes
 app.include_router(projects.router, prefix="/api")
+app.include_router(photos.router, prefix="/api")
+app.include_router(duplicates.router, prefix="/api")
 
 @app.get("/api/health", response_model=APIResponse[dict])
 def health_check():

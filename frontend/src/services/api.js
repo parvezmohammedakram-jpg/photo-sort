@@ -24,4 +24,35 @@ export const projectService = {
   },
 };
 
+export const photoService = {
+  getStats: async (projectId) => {
+    const response = await api.get(`/photos/project/${projectId}/stats`);
+    return response.data.data;
+  },
+  
+  getPhotos: async (projectId, params = {}) => {
+    const response = await api.get(`/photos`, { 
+      params: { project_id: projectId, ...params } 
+    });
+    return response.data;
+  },
+  
+  getPhotoDetail: async (photoId) => {
+    const response = await api.get(`/photos/${photoId}`);
+    return response.data.data;
+  },
+  
+  updateCategory: async (photoId, category) => {
+    const response = await api.patch(`/photos/${photoId}/category`, { category });
+    return response.data.data;
+  }
+};
+
+export const duplicateService = {
+  getGroups: async (projectId) => {
+    const response = await api.get(`/duplicates/project/${projectId}`);
+    return response.data.data;
+  }
+};
+
 export default api;
