@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import init_db
 from app.schemas.base import APIResponse
+from app.api.routes import projects
 
 # Initialize database tables
 init_db()
@@ -21,6 +22,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include routes
+app.include_router(projects.router, prefix="/api")
+
 @app.get("/api/health", response_model=APIResponse[dict])
 def health_check():
     """Health check endpoint."""
@@ -32,5 +36,3 @@ def health_check():
             "database": "connected"
         }
     }
-
-# We will mount routes here as we build them.
