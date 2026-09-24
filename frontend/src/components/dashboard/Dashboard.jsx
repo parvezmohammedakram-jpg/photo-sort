@@ -7,7 +7,8 @@ import {
   MagnifyingGlass,
   XCircle,
   Copy,
-  Star
+  Star,
+  Trash
 } from '@phosphor-icons/react';
 import { projectService, photoService } from '../../services/api';
 import './Dashboard.css';
@@ -20,6 +21,21 @@ const Dashboard = () => {
   const [project, setProject] = useState(null);
   const [stats, setStats] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const handleDeleteProject = async () => {
+    if (window.confirm('Are you sure you want to delete this project? This will remove all associated data.')) {
+      try {
+        await projectService.deleteProject(project.id);
+        if (localStorage.getItem('activeProjectId') === String(project.id)) {
+          localStorage.removeItem('activeProjectId');
+        }
+        navigate('/projects');
+      } catch (err) {
+        console.error('Failed to delete project:', err);
+        alert('Failed to delete project.');
+      }
+    }
+  };
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -62,7 +78,7 @@ const Dashboard = () => {
     };
 
     fetchDashboardData();
-  }, [navigate]);
+  }, [navigate, projectIdParam]);
 
   if (isLoading) {
     return <div className="dashboard-loading">Loading...</div>;
@@ -97,9 +113,15 @@ const Dashboard = () => {
           <h2 className="project-title">{project.name}</h2>
           <p className="project-path">{project.source_path}</p>
         </div>
-        <button className="btn btn-secondary" onClick={() => navigate('/import')}>
-          New Project
-        </button>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button className="btn btn-danger" onClick={handleDeleteProject} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Trash size={18} />
+            Delete Project
+          </button>
+          <button className="btn btn-secondary" onClick={() => navigate('/import')}>
+            New Project
+          </button>
+        </div>
       </div>
 
       <div className="stats-grid">

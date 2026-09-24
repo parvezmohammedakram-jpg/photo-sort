@@ -58,7 +58,7 @@ def analyze_image_worker(photo_id: int, filepath: str, filename: str, has_thumbn
     except Exception as e:
         return {"photo_id": photo_id, "success": False, "error": str(e)}
 
-def process_single_photo_db(db: Session, photo: Photo, result: dict) -> bool:
+def process_single_photo_db(db: Session, photo: Photo, result: dict, duplicate_cache: list) -> bool:
     """
     Process the dictionary returned by analyze_image_worker and save it to the database.
     """
@@ -81,19 +81,16 @@ def process_single_photo_db(db: Session, photo: Photo, result: dict) -> bool:
         is_duplicate = False
         
         if hash_results["perceptual_hash"]:
-            existing_analyses = db.query(Analysis).join(Photo).filter(
-                Photo.project_id == photo.project_id,
-                Photo.id != photo.id,
-                Analysis.duplicate_hash.isnot(None)
-            ).all()
-            
-            for existing in existing_analyses:
-                if hash_results["exact_hash"] and existing.file_hash == hash_results["exact_hash"]:
+            for existing in duplicate_cache:
+                if existing["photo_id"] == photo.id:
+                    continue
+                    
+                if hash_results["exact_hash"] and existing["file_hash"] == hash_results["exact_hash"]:
                     is_duplicate = True
                     group_type = "exact"
                     
-                    if existing.duplicate_group_id:
-                        duplicate_group_id = existing.duplicate_group_id
+                    if existing["duplicate_group_id"]:
+                        duplicate_group_id = existing["duplicate_group_id"]
                     else:
                         group = DuplicateGroup(
                             project_id=photo.project_id,
@@ -103,19 +100,20 @@ def process_single_photo_db(db: Session, photo: Photo, result: dict) -> bool:
                         )
                         db.add(group)
                         db.flush()
-                        existing.duplicate_group_id = group.id
+                        db.query(Analysis).filter(Analysis.id == existing["id"]).update({"duplicate_group_id": group.id})
+                        existing["duplicate_group_id"] = group.id
                         duplicate_group_id = group.id
                     break
                     
                 from app.config import DUPLICATE_HASH_THRESHOLD
-                distance = compute_similarity(hash_results["perceptual_hash"], existing.duplicate_hash)
+                distance = compute_similarity(hash_results["perceptual_hash"], existing["duplicate_hash"])
                 
                 if distance <= DUPLICATE_HASH_THRESHOLD:
                     is_duplicate = True
                     group_type = "near_duplicate"
                     
-                    if existing.duplicate_group_id:
-                        duplicate_group_id = existing.duplicate_group_id
+                    if existing["duplicate_group_id"]:
+                        duplicate_group_id = existing["duplicate_group_id"]
                     else:
                         group = DuplicateGroup(
                             project_id=photo.project_id,
@@ -125,7 +123,8 @@ def process_single_photo_db(db: Session, photo: Photo, result: dict) -> bool:
                         )
                         db.add(group)
                         db.flush()
-                        existing.duplicate_group_id = group.id
+                        db.query(Analysis).filter(Analysis.id == existing["id"]).update({"duplicate_group_id": group.id})
+                        existing["duplicate_group_id"] = group.id
                         duplicate_group_id = group.id
                     break
                     
@@ -160,6 +159,15 @@ def process_single_photo_db(db: Session, photo: Photo, result: dict) -> bool:
         analysis.category = category
         
         photo.status = "processed"
+        db.flush()
+        
+        duplicate_cache.append({
+            "id": analysis.id,
+            "file_hash": analysis.file_hash,
+            "duplicate_hash": analysis.duplicate_hash,
+            "duplicate_group_id": analysis.duplicate_group_id,
+            "photo_id": photo.id
+        })
         
         if duplicate_group_id:
             group = db.query(DuplicateGroup).get(duplicate_group_id)
@@ -200,8 +208,25 @@ def run_analysis_pipeline(project_id: int):
             for photo in photos
         ]
         
+        # Load cache once
+        existing_analyses = db.query(Analysis).join(Photo).filter(
+            Photo.project_id == project_id,
+            Analysis.duplicate_hash.isnot(None)
+        ).all()
+        duplicate_cache = [
+            {
+                "id": a.id,
+                "file_hash": a.file_hash,
+                "duplicate_hash": a.duplicate_hash,
+                "duplicate_group_id": a.duplicate_group_id,
+                "photo_id": a.photo_id
+            }
+            for a in existing_analyses
+        ]
+        
         logger.info(f"Starting parallel processing for {len(worker_args)} photos using {os.cpu_count()} cores.")
         
+        processed_count = 0
         with concurrent.futures.ProcessPoolExecutor(max_workers=os.cpu_count()) as executor:
             futures = [executor.submit(analyze_image_worker, *args) for args in worker_args]
             
@@ -211,13 +236,15 @@ def run_analysis_pipeline(project_id: int):
                 # Fetch fresh photo object
                 photo = db.query(Photo).get(result["photo_id"])
                 if photo:
-                    success = process_single_photo_db(db, photo, result)
+                    success = process_single_photo_db(db, photo, result, duplicate_cache)
                     if success:
                         project.processed_files += 1
                     else:
                         project.failed_files += 1
                         
-                    db.commit() # Commit project progress incrementally
+                    processed_count += 1
+                    if processed_count % 50 == 0:
+                        db.commit() # Commit project progress in batches
             
         # Update project status
         project.status = "completed"
