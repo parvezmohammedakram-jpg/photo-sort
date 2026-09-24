@@ -52,6 +52,7 @@ cd photo-sort
 
 ### 2. Backend Setup
 ```bash
+cd photo-sort
 cd backend
 python -m venv venv
 
@@ -72,6 +73,7 @@ The backend API will be available at `http://127.0.0.1:8000`. API documentation 
 ### 3. Frontend Setup
 Open a new terminal window:
 ```bash
+cd photo-sort
 cd frontend
 
 # Install dependencies
