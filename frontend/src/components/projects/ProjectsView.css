@@ -20,8 +20,8 @@
 
 .project-card:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--primary-light);
+  box-shadow: var(--shadow-sm);
+  border-color: var(--border-focus);
 }
 
 .project-card-header {
@@ -56,13 +56,13 @@
 }
 
 .status-processing, .status-pending {
-  background-color: var(--primary-light);
-  color: var(--primary-dark);
+  background-color: var(--surface-inset);
+  color: var(--text-primary);
 }
 
 .status-error {
-  background-color: var(--danger-bg, #fce8e6);
-  color: var(--danger);
+  background-color: var(--status-poor-bg);
+  color: var(--status-poor-text);
 }
 
 .project-card-body {
@@ -122,17 +122,21 @@
 }
 
 .btn-danger {
-  color: var(--danger);
+  color: var(--status-poor-text);
 }
 
 .btn-danger:hover {
-  background-color: var(--danger);
-  color: white;
+  background-color: var(--status-poor-bg);
+  color: var(--status-poor-text);
 }
 
-.btn-primary:not(:hover) {
-  color: var(--primary);
-  background-color: var(--primary-light);
+.btn-primary {
+  color: var(--text-primary);
+  background-color: var(--surface-inset);
+}
+
+.btn-primary:hover {
+  background-color: var(--border-default);
 }
 
 .projects-loading {

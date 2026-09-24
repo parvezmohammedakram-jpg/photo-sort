@@ -57,11 +57,12 @@ def compute_similarity(hash1_str: str, hash2_str: str) -> int:
         int: Hamming distance, or 999 on error
     """
     try:
-        if not hash1_str or not hash2_str:
+        if hash1_str is None or hash2_str is None:
             return 999
             
-        h1 = imagehash.hex_to_hash(hash1_str)
-        h2 = imagehash.hex_to_hash(hash2_str)
+        # Allow pre-parsed ImageHash objects to avoid O(N^2) string parsing overhead
+        h1 = hash1_str if isinstance(hash1_str, imagehash.ImageHash) else imagehash.hex_to_hash(str(hash1_str))
+        h2 = hash2_str if isinstance(hash2_str, imagehash.ImageHash) else imagehash.hex_to_hash(str(hash2_str))
         
         return h1 - h2
     except Exception as e:

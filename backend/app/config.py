@@ -116,7 +116,7 @@ DUPLICATE_PENALTY = float(os.getenv("DUPLICATE_PENALTY", "10.0"))
 # ---------------------------------------------------------------------------
 # Processing
 # ---------------------------------------------------------------------------
-MAX_ANALYSIS_DIMENSION = int(os.getenv("MAX_ANALYSIS_DIMENSION", "2048"))
+MAX_ANALYSIS_DIMENSION = int(os.getenv("MAX_ANALYSIS_DIMENSION", "800"))
 THUMBNAIL_SIZE = int(os.getenv("THUMBNAIL_SIZE", "300"))
 PREVIEW_SIZE = int(os.getenv("PREVIEW_SIZE", "1200"))
 

@@ -152,18 +152,18 @@ const ProjectsView = () => {
               
               <div className="project-card-footer">
                 <button 
-                  className="btn btn-icon btn-danger" 
+                  className="btn btn-danger" 
                   onClick={(e) => handleDelete(e, project.id)}
                   title="Delete Project"
                 >
-                  <Trash size={18} />
+                  <Trash size={18} /> Delete
                 </button>
                 <button 
-                  className="btn btn-icon btn-primary" 
+                  className="btn btn-primary" 
                   onClick={() => handleOpenProject(project.id)}
                   title="Open Project"
                 >
-                  <ArrowRight size={18} />
+                  Open <ArrowRight size={18} />
                 </button>
               </div>
             </div>

@@ -23,6 +23,8 @@ def analyze_image_worker(photo_id: int, filepath: str, filename: str, has_thumbn
     """
     Pure CPU worker for image analysis. No database interactions.
     """
+    import cv2
+    cv2.setNumThreads(1)
     try:
         # 1. Generate thumbnail and preview (if they don't exist)
         thumb_path = str(THUMBNAIL_DIR / f"{photo_id}_{filename}.jpg")
@@ -43,7 +45,7 @@ def analyze_image_worker(photo_id: int, filepath: str, filename: str, has_thumbn
         # 3. Run individual analyzers
         blur_results = analyze_blur(analysis_image)
         exposure_results = analyze_exposure(analysis_image)
-        face_results = analyze_faces(image)
+        face_results = analyze_faces(analysis_image)
         hash_results = calculate_hashes(filepath)
         
         return {
@@ -106,7 +108,7 @@ def process_single_photo_db(db: Session, photo: Photo, result: dict, duplicate_c
                     break
                     
                 from app.config import DUPLICATE_HASH_THRESHOLD
-                distance = compute_similarity(hash_results["perceptual_hash"], existing["duplicate_hash"])
+                distance = compute_similarity(hash_results["perceptual_hash"], existing.get("parsed_hash") or existing["duplicate_hash"])
                 
                 if distance <= DUPLICATE_HASH_THRESHOLD:
                     is_duplicate = True
@@ -161,10 +163,12 @@ def process_single_photo_db(db: Session, photo: Photo, result: dict, duplicate_c
         photo.status = "processed"
         db.flush()
         
+        import imagehash
         duplicate_cache.append({
             "id": analysis.id,
             "file_hash": analysis.file_hash,
             "duplicate_hash": analysis.duplicate_hash,
+            "parsed_hash": imagehash.hex_to_hash(hash_results["perceptual_hash"]) if hash_results["perceptual_hash"] else None,
             "duplicate_group_id": analysis.duplicate_group_id,
             "photo_id": photo.id
         })
@@ -213,38 +217,38 @@ def run_analysis_pipeline(project_id: int):
             Photo.project_id == project_id,
             Analysis.duplicate_hash.isnot(None)
         ).all()
+        import imagehash
         duplicate_cache = [
             {
                 "id": a.id,
                 "file_hash": a.file_hash,
                 "duplicate_hash": a.duplicate_hash,
+                "parsed_hash": imagehash.hex_to_hash(a.duplicate_hash) if a.duplicate_hash else None,
                 "duplicate_group_id": a.duplicate_group_id,
                 "photo_id": a.photo_id
             }
             for a in existing_analyses
         ]
         
-        logger.info(f"Starting parallel processing for {len(worker_args)} photos using {os.cpu_count()} cores.")
+        logger.info(f"Starting sequential processing for {len(worker_args)} photos.")
         
         processed_count = 0
-        with concurrent.futures.ProcessPoolExecutor(max_workers=os.cpu_count()) as executor:
-            futures = [executor.submit(analyze_image_worker, *args) for args in worker_args]
+        for args in worker_args:
+            result = analyze_image_worker(*args)
             
-            for future in concurrent.futures.as_completed(futures):
-                result = future.result()
-                
-                # Fetch fresh photo object
-                photo = db.query(Photo).get(result["photo_id"])
-                if photo:
-                    success = process_single_photo_db(db, photo, result, duplicate_cache)
-                    if success:
-                        project.processed_files += 1
-                    else:
-                        project.failed_files += 1
-                        
-                    processed_count += 1
-                    if processed_count % 50 == 0:
-                        db.commit() # Commit project progress in batches
+            # Fetch fresh photo object
+            photo = db.query(Photo).get(result["photo_id"])
+            if photo:
+                success = process_single_photo_db(db, photo, result, duplicate_cache)
+                if success:
+                    project.processed_files += 1
+                else:
+                    project.failed_files += 1
+                    
+                processed_count += 1
+                # Commit project progress more frequently so UI updates in real-time
+                if processed_count % 2 == 0:
+                    db.commit()
             
         # Update project status
         project.status = "completed"
