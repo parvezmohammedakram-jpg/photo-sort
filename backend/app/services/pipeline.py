@@ -230,25 +230,35 @@ def run_analysis_pipeline(project_id: int):
             for a in existing_analyses
         ]
         
-        logger.info(f"Starting sequential processing for {len(worker_args)} photos.")
+        logger.info(f"Starting parallel processing for {len(worker_args)} photos using {os.cpu_count()} cores.")
+        
+        # Prevent NumPy/OpenCV from spawning nested threads which causes severe CPU thrashing
+        os.environ["OMP_NUM_THREADS"] = "1"
+        os.environ["OPENBLAS_NUM_THREADS"] = "1"
+        os.environ["MKL_NUM_THREADS"] = "1"
+        os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+        os.environ["NUMEXPR_NUM_THREADS"] = "1"
         
         processed_count = 0
-        for args in worker_args:
-            result = analyze_image_worker(*args)
+        with concurrent.futures.ProcessPoolExecutor(max_workers=os.cpu_count()) as executor:
+            futures = [executor.submit(analyze_image_worker, *args) for args in worker_args]
             
-            # Fetch fresh photo object
-            photo = db.query(Photo).get(result["photo_id"])
-            if photo:
-                success = process_single_photo_db(db, photo, result, duplicate_cache)
-                if success:
-                    project.processed_files += 1
-                else:
-                    project.failed_files += 1
-                    
-                processed_count += 1
-                # Commit project progress more frequently so UI updates in real-time
-                if processed_count % 2 == 0:
-                    db.commit()
+            for future in concurrent.futures.as_completed(futures):
+                result = future.result()
+                
+                # Fetch fresh photo object
+                photo = db.query(Photo).get(result["photo_id"])
+                if photo:
+                    success = process_single_photo_db(db, photo, result, duplicate_cache)
+                    if success:
+                        project.processed_files += 1
+                    else:
+                        project.failed_files += 1
+                        
+                    processed_count += 1
+                    # Commit project progress more frequently so UI updates in real-time
+                    if processed_count % 2 == 0:
+                        db.commit()
             
         # Update project status
         project.status = "completed"
