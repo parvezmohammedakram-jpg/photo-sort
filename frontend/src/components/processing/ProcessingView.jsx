@@ -40,29 +40,35 @@ const ProcessingView = () => {
 
   useEffect(() => {
     if (!projectId) return;
+    let isActive = true;
+    let interval;
 
     const checkStatus = async () => {
       try {
+        if (!isActive) return;
         const data = await projectService.getProjectStatus(projectId);
         setStatus(data);
+        
+        if (data.project_status === 'completed' || data.project_status === 'failed') {
+          if (interval) clearInterval(interval);
+        }
       } catch (err) {
         console.error(err);
-        setError('Failed to fetch processing status. The backend might be down.');
+        if (isActive) setError('Failed to fetch processing status. The backend might be down.');
       }
     };
 
     // Initial check
     checkStatus();
 
-    // Poll every 2 seconds if not completed/failed
-    const interval = setInterval(() => {
-      if (!status || (status.project_status !== 'completed' && status.project_status !== 'failed')) {
-        checkStatus();
-      }
-    }, 2000);
+    // Poll every 2 seconds
+    interval = setInterval(checkStatus, 2000);
 
-    return () => clearInterval(interval);
-  }, [projectId, navigate, status?.project_status]);
+    return () => {
+      isActive = false;
+      if (interval) clearInterval(interval);
+    };
+  }, [projectId]);
 
   useEffect(() => {
     if (!status?.created_at) return;
