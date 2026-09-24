@@ -24,29 +24,58 @@ def analyze_image_worker(photo_id: int, filepath: str, filename: str, has_thumbn
     Pure CPU worker for image analysis. No database interactions.
     """
     import cv2
+    import hashlib
+    import imagehash
+    from PIL import Image as PILImage
+    from app.config import THUMBNAIL_SIZE, PREVIEW_SIZE, DUPLICATE_HASH_SIZE
+    
     cv2.setNumThreads(1)
     try:
-        # 1. Generate thumbnail and preview (if they don't exist)
+        # 1. Load image ONCE to save massive disk I/O and decoding overhead
+        image = load_image(filepath)
+        if image is None:
+            return {"photo_id": photo_id, "success": False, "error": f"Could not load image: {filepath}"}
+            
         thumb_path = str(THUMBNAIL_DIR / f"{photo_id}_{filename}.jpg")
         preview_path = str(PREVIEW_DIR / f"{photo_id}_{filename}.jpg")
         
         generated_thumb = None
         if not has_thumbnail:
-            generated_thumb = generate_thumbnail(filepath, thumb_path)
-            generate_preview(filepath, preview_path)
+            h, w = image.shape[:2]
             
-        # 2. Load and resize image for memory-safe analysis
-        image = load_image(filepath)
-        if image is None:
-            return {"photo_id": photo_id, "success": False, "error": f"Could not load image: {filepath}"}
+            # Preview
+            scale_p = PREVIEW_SIZE / max(h, w)
+            prev_img = cv2.resize(image, (int(w*scale_p), int(h*scale_p)), interpolation=cv2.INTER_AREA) if scale_p < 1.0 else image
+            cv2.imwrite(preview_path, prev_img, [int(cv2.IMWRITE_JPEG_QUALITY), 85])
             
+            # Thumbnail
+            scale_t = THUMBNAIL_SIZE / max(h, w)
+            thumb_img = cv2.resize(image, (int(w*scale_t), int(h*scale_t)), interpolation=cv2.INTER_AREA) if scale_t < 1.0 else image
+            cv2.imwrite(thumb_path, thumb_img, [int(cv2.IMWRITE_JPEG_QUALITY), 85])
+            
+            generated_thumb = thumb_path
+            
+        # 2. Resize for analysis
         analysis_image = resize_for_analysis(image)
         
         # 3. Run individual analyzers
         blur_results = analyze_blur(analysis_image)
         exposure_results = analyze_exposure(analysis_image)
         face_results = analyze_faces(analysis_image)
-        hash_results = calculate_hashes(filepath)
+        
+        # 4. Calculate hashes reusing the loaded image
+        pil_img = PILImage.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+        phash = str(imagehash.phash(pil_img, hash_size=DUPLICATE_HASH_SIZE))
+        
+        md5_hash = hashlib.md5()
+        with open(filepath, "rb") as f:
+            for chunk in iter(lambda: f.read(4096), b""):
+                md5_hash.update(chunk)
+                
+        hash_results = {
+            "perceptual_hash": phash,
+            "exact_hash": md5_hash.hexdigest()
+        }
         
         return {
             "photo_id": photo_id,
