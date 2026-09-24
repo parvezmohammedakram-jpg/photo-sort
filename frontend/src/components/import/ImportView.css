@@ -78,7 +78,7 @@
   color: var(--text-faint);
 }
 
-.path-input {
+.input.path-input {
   padding-left: 42px;
 }
 
